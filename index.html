@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenDCAI · 训练数据集展示中心</title>
+<style>
+  :root{--bg:#0a0f1f;--bg2:#0e1530;--card:#141c34;--card2:#172040;--line:#27314f;
+        --txt:#e9edf7;--muted:#97a3c2;--accent:#6c8cff;--accent2:#37e0c8;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;
+       background:radial-gradient(1200px 620px at 82% -12%,#1b2a55 0,transparent 58%),var(--bg);color:var(--txt);line-height:1.6}
+  a{color:var(--accent);text-decoration:none}
+  .wrap{max-width:1300px;margin:0 auto;padding:0 24px}
+  /* hero */
+  header{padding:54px 0 30px}
+  .badge{display:inline-block;font-size:13px;color:var(--accent2);border:1px solid #244a47;background:#0f2724;padding:4px 12px;border-radius:999px;margin-bottom:16px}
+  h1{font-size:40px;margin:0 0 10px;letter-spacing:.5px}
+  h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);max-width:820px;font-size:16px}
+  .stats{display:flex;flex-wrap:wrap;gap:14px;margin-top:26px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 20px;min-width:120px}
+  .stat b{display:block;font-size:26px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat span{color:var(--muted);font-size:12.5px}
+  /* category grid */
+  .secttitle{font-size:22px;margin:38px 0 4px}
+  .secttitle small{color:var(--muted);font-size:14px;font-weight:400;margin-left:8px}
+  .filterbar{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+  .chip{background:var(--card);border:1px solid var(--line);color:var(--muted);padding:6px 14px;border-radius:999px;cursor:pointer;font-size:13.5px}
+  .chip.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#06122a;font-weight:700;border-color:transparent}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;padding:6px 0 60px}
+  .ccard{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:20px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+  .ccard:hover{transform:translateY(-4px);border-color:var(--accent)}
+  .ccard .dot{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#06122a;font-size:18px;margin-bottom:14px}
+  .ccard .ctag{font-size:11.5px;color:var(--muted);border:1px solid var(--line);padding:1px 8px;border-radius:6px}
+  .ccard h3{margin:8px 0 6px;font-size:18px}
+  .ccard p{color:var(--muted);font-size:13.5px;margin:0 0 16px;min-height:60px}
+  .ccard .foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:12px}
+  .ccard .num{font-size:22px;font-weight:800}
+  .ccard .go{font-size:13px;color:var(--accent2)}
+  /* detail */
+  .detail{display:none}
+  .back{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);color:var(--txt);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:14px;margin-bottom:18px}
+  .dhead{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .dhead .dot{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#06122a;font-size:22px}
+  .dhead h2{margin:0;font-size:26px}
+  .dhead .meta{color:var(--muted);font-size:13.5px}
+  .dbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:18px 0}
+  .dbar input{flex:1;min-width:220px;background:var(--card);border:1px solid var(--line);color:var(--txt);padding:10px 14px;border-radius:10px;font-size:14px}
+  .dbar select{background:var(--card);border:1px solid var(--line);color:var(--txt);padding:10px 12px;border-radius:10px;font-size:14px}
+  .reclist{display:flex;flex-direction:column;gap:12px;padding-bottom:60px}
+  .rec{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .rhead{padding:9px 16px;background:#0f1730;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between}
+  .field{padding:11px 16px;border-bottom:1px solid #1a2340}
+  .field:last-child{border-bottom:none}
+  .field .k{font-size:11.5px;color:var(--accent2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .field .v{white-space:pre-wrap;word-break:break-word;font-size:14px;color:#dde4f3}
+  .clamp{max-height:140px;overflow:hidden;position:relative}
+  .clamp.expanded{max-height:none}
+  .more{color:var(--accent);cursor:pointer;font-size:12.5px;margin-top:6px;display:inline-block}
+  pre{background:#0c1322;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:13px;color:#c7f2e4;margin:4px 0 0}
+  .bubble{margin:6px 0;padding:9px 13px;border-radius:10px;font-size:13.5px;max-width:92%}
+  .bubble.user{background:#13233f;border:1px solid #20406b}
+  .bubble.gpt{background:#13261f;border:1px solid #1f4a3a;margin-left:auto}
+  .recimg{max-width:380px;max-height:300px;width:auto;border-radius:9px;border:1px solid var(--line);cursor:zoom-in;display:block}
+  .recaudio{width:100%;max-width:460px;margin-top:2px}
+  .recvideo{max-width:420px;width:100%;border-radius:9px;border:1px solid var(--line);background:#000;display:block}
+  .brole{font-size:11px;color:var(--muted);margin-bottom:3px}
+  /* image gallery */
+  .imgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;padding-bottom:60px}
+  .icard{background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden;cursor:pointer;transition:.16s}
+  .icard:hover{transform:translateY(-3px);border-color:var(--accent)}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:2px;position:relative;background:#000}
+  .pair img{width:100%;height:165px;object-fit:cover;display:block}
+  .pair .lab{position:absolute;top:7px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;background:rgba(0,0,0,.6)}
+  .pair .lb{left:7px;color:#9aa6c4}.pair .la{right:7px;color:#37e0c8}
+  .arrow{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#06122a;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900}
+  .ibody{padding:11px 14px}
+  .ibody .tt{font-size:11px;color:#ffb347;border:1px solid #5a4326;padding:1px 7px;border-radius:5px}
+  .ibody p{margin:8px 0 0;font-size:13px;color:#cfd6ea;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(4,8,18,.88);backdrop-filter:blur(4px);display:none;z-index:60;padding:28px}
+  .modal.open{display:flex;align-items:center;justify-content:center}
+  .mbox{background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:1080px;width:100%;max-height:90vh;overflow:auto}
+  .mhead{display:flex;justify-content:space-between;align-items:center;padding:15px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
+  .mhead h3{margin:0;font-size:17px}
+  .mclose{background:#1b2440;border:1px solid var(--line);color:var(--txt);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:18px}
+  .mpair{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:18px 22px}
+  .mpair img{width:100%;border-radius:10px;border:1px solid var(--line)}
+  .mpair figcaption{color:var(--muted);font-size:13px;margin-top:6px;text-align:center}
+  .mtags{padding:0 22px;display:flex;gap:8px;flex-wrap:wrap}
+  .mtags span{font-size:12px;border:1px solid var(--line);color:var(--muted);padding:2px 9px;border-radius:6px}
+  .mprompt{margin:14px 22px 24px;background:#0c1322;border:1px solid var(--line);border-radius:10px;padding:14px 16px;white-space:pre-wrap;font-size:13.5px;color:#c7f2e4}
+  .mthumbstrip{display:flex;gap:2px;background:#000;overflow:hidden}
+  .mthumbstrip img{width:100%;height:120px;object-fit:cover;flex:1;min-width:0}
+  #mtimeline{padding:8px 22px 24px}
+  .tlrow{display:grid;grid-template-columns:260px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .tlrow:last-child{border-bottom:none}
+  .tlimg{position:relative}
+  .tlimg img{width:100%;border-radius:9px;border:1px solid var(--line);display:block}
+  .tlimg .noimg{height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted);background:#0c1322;border-radius:9px}
+  .tlbadge{position:absolute;left:8px;top:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#06122a;font-weight:800;font-size:11.5px;padding:2px 9px;border-radius:6px}
+  .tlbadge.ref{background:#1b2440;color:#9aa6c4;border:1px solid var(--line)}
+  .tlt{font-size:14.5px;color:#eef2fb;margin-bottom:5px}
+  .tlen{font-size:12.5px;color:var(--muted);font-style:italic;margin-bottom:8px}
+  .tlmeta{display:flex;gap:8px;flex-wrap:wrap}
+  @media(max-width:680px){.tlrow{grid-template-columns:1fr}}
+  footer{border-top:1px solid var(--line);padding:26px 0 70px;color:var(--muted);font-size:13px}
+  .note{background:#15233a;border:1px solid #234;border-radius:10px;padding:13px 17px;color:#bcd;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HOME ============ -->
+  <div id="home">
+    <header>
+      <div class="badge">OpenDCAI · DataFlow 数据治理引擎</div>
+      <h1>OpenDCAI <span>训练数据集</span> 展示中心</h1>
+      <p class="sub">点击任意分类卡片，进入查看该类的真实数据样本。涵盖文本、推理、代码、Text2SQL、指令对话、医疗问答、函数调用、RAG，以及多模态（图像编辑、区域描述、知识VQA、语音ASR、视频CoT推理）。多数分类提供 100+ 条样本（视频类为精选短样本）。数据均由 DataFlow 流水线清洗 / 合成 / 质量打分。</p>
+      <div class="stats" id="stats"></div>
+    </header>
+    <div class="secttitle">数据分类 <small>点击进入查看样本</small></div>
+    <div class="filterbar" id="filterbar"></div>
+    <div class="grid" id="catgrid"></div>
+  </div>
+
+  <!-- ============ DETAIL ============ -->
+  <div id="detail" class="detail">
+    <div class="back" onclick="goHome()">← 返回分类</div>
+    <div class="dhead">
+      <div class="dot" id="dDot"></div>
+      <div>
+        <h2 id="dTitle"></h2>
+        <div class="meta" id="dMeta"></div>
+      </div>
+    </div>
+    <p class="sub" id="dDesc" style="margin-top:10px"></p>
+    <div class="dbar" id="dBar"></div>
+    <div id="dContent"></div>
+  </div>
+
+  <footer>
+    <div class="note">演示用途：长文本字段已做截断展示；完整数据集（含百万级规模）可按需供给与定制。</div>
+  </footer>
+</div>
+
+<!-- image modal -->
+<div class="modal" id="modal"><div class="mbox">
+  <div class="mhead"><h3 id="mtitle"></h3><button class="mclose" onclick="closeModal()">×</button></div>
+  <div class="mtags" id="mtags"></div>
+  <div class="mpair" id="mpair"></div>
+  <pre class="mprompt" id="mprompt"></pre>
+</div></div>
+
+<script src="data.js"></script>
+<script>
+const DB=window.DB;
+let curCat=null;
+
+// ---------- stats ----------
+const totalRows=DB.catalog.reduce((a,c)=>a+c.count,0);
+const cats=[...new Set(DB.catalog.map(c=>c.cat))];
+document.getElementById('stats').innerHTML=`
+ <div class="stat"><b>${DB.catalog.length}</b><span>数据分类</span></div>
+ <div class="stat"><b>${totalRows}</b><span>展示样本总数</span></div>
+ <div class="stat"><b>${cats.length}</b><span>领域方向</span></div>
+ <div class="stat"><b>100+</b><span>每类样本量</span></div>
+ <div class="stat"><b>62TB+</b><span>最大单集规模(天网3库)</span></div>`;
+
+// ---------- filter chips ----------
+let curFilter="全部";
+const fb=document.getElementById('filterbar');
+["全部",...cats].forEach(c=>{
+  const el=document.createElement('div');el.className='chip'+(c==="全部"?' active':'');el.textContent=c;
+  el.onclick=()=>{curFilter=c;document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderCats();};
+  fb.appendChild(el);
+});
+
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+// ---------- category grid ----------
+function renderCats(){
+  const g=document.getElementById('catgrid');
+  const list=DB.catalog.filter(c=>curFilter==="全部"||c.cat===curFilter);
+  g.innerHTML=list.map(c=>`
+    <div class="ccard" onclick="openCat('${c.key}')">
+      <div class="dot" style="background:${c.color}">${c.title.slice(0,1)}</div>
+      <span class="ctag">${c.cat}</span>
+      <h3>${c.title}</h3>
+      <p>${c.desc}</p>
+      <div class="foot">
+        <div><span class="num" style="color:${c.color}">${c.count}</span> <span style="color:var(--muted);font-size:12px">条样本</span></div>
+        <div class="go">进入查看 →</div>
+      </div>
+    </div>`).join('');
+}
+renderCats();
+
+// ---------- routing ----------
+function goHome(){location.hash='';}
+function openCat(key){location.hash='#/'+key;}
+window.addEventListener('hashchange',route);
+function route(){
+  const m=location.hash.match(/^#\/(.+)$/);
+  if(m && DB.catalog.find(c=>c.key===m[1])){ showDetail(m[1]); }
+  else { document.getElementById('detail').style.display='none'; document.getElementById('home').style.display='block'; window.scrollTo(0,0);}
+}
+
+// ---------- detail render ----------
+function showDetail(key){
+  curCat=DB.catalog.find(c=>c.key===key);
+  document.getElementById('home').style.display='none';
+  document.getElementById('detail').style.display='block';
+  window.scrollTo(0,0);
+  document.getElementById('dDot').textContent=curCat.title.slice(0,1);
+  document.getElementById('dDot').style.background=curCat.color;
+  document.getElementById('dTitle').textContent=curCat.title;
+  document.getElementById('dMeta').innerHTML=`分类: ${curCat.cat} · 样本数: <b>${curCat.count}</b>`;
+  document.getElementById('dDesc').textContent=curCat.desc;
+  if(curCat.kind==='image') renderImageDetail();
+  else if(curCat.kind==='multi') renderMultiDetail();
+  else renderTextDetail(key);
+}
+
+// text/chat detail
+function renderTextDetail(key){
+  const rows=DB.samples[key];
+  const bar=document.getElementById('dBar');
+  bar.innerHTML=`<input id="q" placeholder="🔍 在 ${rows.length} 条样本中搜索关键词…">
+                 <select id="lim"><option value="30">显示 30 条</option><option value="60">显示 60 条</option><option value="120" selected>显示全部</option></select>`;
+  const draw=()=>{
+    const q=(document.getElementById('q').value||'').toLowerCase();
+    const lim=+document.getElementById('lim').value;
+    let list=rows;
+    if(q) list=rows.filter(r=>JSON.stringify(r).toLowerCase().includes(q));
+    list=list.slice(0,lim);
+    document.getElementById('dContent').innerHTML='<div class="reclist">'+
+      list.map((r,i)=>recHTML(r,i)).join('')+'</div>'+
+      (list.length<rows.length&&!q?`<div style="text-align:center;color:var(--muted);padding:10px">已显示 ${list.length} / ${rows.length} 条，可在上方切换“显示全部”</div>`:'');
+  };
+  document.getElementById('dBar').oninput=draw;
+  document.getElementById('dBar').onchange=draw;
+  draw();
+}
+function recHTML(r,i){
+  let inner='';
+  const skip={};
+  if(typeof r.image==='string' && r.image.indexOf('assets/')===0){
+    inner+=`<div class="field"><div class="k">image</div><img class="recimg" loading="lazy" src="${r.image}" onclick="window.open('${r.image}')"></div>`;
+    skip.image=1;
+  }
+  if(typeof r.audio==='string' && r.audio.indexOf('assets/')===0){
+    inner+=`<div class="field"><div class="k">audio · 点击播放</div><audio class="recaudio" controls preload="none" src="${r.audio}"></audio></div>`;
+    skip.audio=1;
+  }
+  if(typeof r.video==='string' && r.video.indexOf('assets/')===0){
+    inner+=`<div class="field"><div class="k">video · 点击播放</div><video class="recvideo" controls loop muted preload="metadata" src="${r.video}"></video></div>`;
+    skip.video=1;
+  }
+  if(r.conversations && Array.isArray(r.conversations)){
+    inner+='<div class="field"><div class="k">conversations</div>'+convHTML(r.conversations)+'</div>';
+  } else {
+    const labels=(curCat&&curCat.labels)||{};
+    for(const k in r){ if(skip[k])continue; const v=r[k];
+      if(v===null||v===undefined||(typeof v==='string'&&v.trim()==='')||(Array.isArray(v)&&v.length===0))continue;
+      const lbl=labels[k]?labels[k]+' · '+k:k; inner+=`<div class="field"><div class="k">${esc(lbl)}</div>${valHTML(v)}</div>`; }
+  }
+  return `<div class="rec"><div class="rhead"><span>样本 #${i+1}</span></div>${inner}</div>`;
+}
+function convHTML(conv){
+  return conv.map(m=>{
+    const role=(m.from||m.role||'').toLowerCase();
+    const isUser=/user|human/.test(role);
+    const val=m.value!=null?m.value:(m.content!=null?m.content:'');
+    return `<div class="bubble ${isUser?'user':'gpt'}"><div class="brole">${esc(m.from||m.role||'')}</div>${valInner(val)}</div>`;
+  }).join('');
+}
+function isCode(s){return /```|SELECT |def |class |\bimport \b|\n {2,}\S/.test(s)&&s.length>60;}
+function valInner(v){
+  if(v==null) return '<span class="v">—</span>';
+  if(typeof v==='object') return '<pre>'+esc(JSON.stringify(v,null,2))+'</pre>';
+  const s=String(v);
+  if(isCode(s)) return '<pre>'+esc(s)+'</pre>';
+  return '<div class="v">'+esc(s)+'</div>';
+}
+function valHTML(v){
+  if(v!=null && typeof v==='object') return '<pre class="clamp" onclick="this.classList.toggle(\'expanded\')">'+esc(JSON.stringify(v,null,2))+'</pre><span class="more" onclick="this.previousElementSibling.classList.toggle(\'expanded\')">展开 / 收起</span>';
+  const s=String(v==null?'':v);
+  if(isCode(s)) return '<pre class="clamp" onclick="this.classList.toggle(\'expanded\')">'+esc(s)+'</pre><span class="more" onclick="this.previousElementSibling.classList.toggle(\'expanded\')">展开 / 收起</span>';
+  if(s.length>320) return '<div class="v clamp">'+esc(s)+'</div><span class="more" onclick="this.previousElementSibling.classList.toggle(\'expanded\')">展开 / 收起</span>';
+  return '<div class="v">'+esc(s)+'</div>';
+}
+
+// image detail
+function renderImageDetail(){
+  const E=DB.edits;
+  const types=[...new Set(E.map(x=>x.edit_type))].sort();
+  const subs=[...new Set(E.map(x=>x.sub))];
+  document.getElementById('dBar').innerHTML=
+    `<select id="isub"><option value="all">全部子集</option>`+subs.map(s=>`<option value="${s}">${s} (${E.filter(x=>x.sub===s).length})</option>`).join('')+`</select>
+     <select id="itype"><option value="all">全部编辑类型</option>`+types.map(t=>`<option value="${t}">${t}</option>`).join('')+`</select>`;
+  const draw=()=>{
+    const s=document.getElementById('isub').value, t=document.getElementById('itype').value;
+    const list=E.filter(x=>(s==='all'||x.sub===s)&&(t==='all'||x.edit_type===t));
+    document.getElementById('dContent').innerHTML='<div class="imgrid">'+list.map(x=>{
+      const gi=DB.edits.indexOf(x);
+      return `<div class="icard" onclick="openImg(${gi})">
+        <div class="pair"><span class="lab lb">BEFORE</span><img loading="lazy" src="${x.before}">
+        <div class="arrow">→</div><span class="lab la">AFTER</span><img loading="lazy" src="${x.after}"></div>
+        <div class="ibody"><span class="tt">${x.edit_type}</span><p>${esc(x.edit_prompt)}</p></div></div>`;
+    }).join('')+'</div>';
+  };
+  document.getElementById('dBar').onchange=draw;
+  draw();
+}
+// ---------- multi-turn editing ----------
+function renderMultiDetail(){
+  const M=DB.samples.img_edit_multi;
+  const cats=[...new Set(M.map(x=>x.category))].sort();
+  document.getElementById('dBar').innerHTML=
+    `<select id="mfil"><option value="all">全部场景 (${M.length})</option>`+
+    cats.map(c=>`<option value="${c}">${c} (${M.filter(x=>x.category===c).length})</option>`).join('')+`</select>`;
+  const draw=()=>{
+    const f=document.getElementById('mfil').value;
+    const list=M.filter(x=>f==='all'||x.category===f);
+    document.getElementById('dContent').innerHTML='<div class="imgrid">'+list.map(x=>{
+      const gi=M.indexOf(x);
+      const strip=[x.reference,...x.rounds.map(r=>r.image)].filter(Boolean).slice(0,6)
+        .map((src,k)=>`<img src="${src}" title="${k===0?'参考图':'第'+k+'轮'}">`).join('');
+      return `<div class="icard" onclick="openMulti(${gi})">
+        <div class="mthumbstrip">${strip}</div>
+        <div class="ibody"><span class="tt">${x.category}</span>
+        <span class="tt" style="color:#5fd0ff;border-color:#244a6b">${x.num_rounds} 轮</span>
+        <p>参考图 + ${x.rounds.length} 轮迭代编辑，点击查看逐轮时间线</p></div></div>`;
+    }).join('')+'</div>';
+  };
+  document.getElementById('dBar').onchange=draw; draw();
+}
+function openMulti(i){
+  const x=DB.samples.img_edit_multi[i];
+  document.getElementById('mtitle').textContent=`多轮编辑 · ${x.category} (${x.num_rounds} 轮)`;
+  document.getElementById('mtags').innerHTML=
+    `<span>场景 ${x.category}</span>`+(x.line?`<span>line: ${x.line}</span>`:'')+(x.construction?`<span>构造 ${x.construction}</span>`:'')+`<span>${x.rounds.length} 轮</span>`;
+  let html='';
+  if(x.reference) html+=`<div class="tlrow"><div class="tlimg"><img src="${x.reference}"><div class="tlbadge ref">参考图 reference</div></div><div class="tltext"><div class="tlt">初始参考图</div><div class="tlp">后续每一轮编辑都在此基础上迭代</div></div></div>`;
+  x.rounds.forEach(r=>{
+    html+=`<div class="tlrow">
+      <div class="tlimg">${r.image?`<img src="${r.image}">`:'<div class="noimg">无图</div>'}<div class="tlbadge">第 ${r.idx} 轮</div></div>
+      <div class="tltext">
+        <div class="tlt">${esc(r.prompt_zh||'')}</div>
+        <div class="tlen">${esc(r.prompt_en||'')}</div>
+        <div class="tlmeta"><span class="tt">${esc(r.edit_type||'')}</span><span class="tt" style="color:#9aa6c4;border-color:var(--line)">基于: ${r.source_ref==='prev'?'上一轮':(r.source_ref||'-')}</span></div>
+      </div></div>`;
+  });
+  document.getElementById('mpair').innerHTML='';
+  document.getElementById('mpair').className='';
+  document.getElementById('mprompt').style.display='none';
+  let tl=document.getElementById('mtimeline');
+  if(!tl){tl=document.createElement('div');tl.id='mtimeline';document.getElementById('mprompt').parentNode.insertBefore(tl,document.getElementById('mprompt'));}
+  tl.style.display='block'; tl.innerHTML=html;
+  document.getElementById('modal').classList.add('open');
+}
+function openImg(i){
+  document.getElementById('mpair').className='mpair';
+  document.getElementById('mprompt').style.display='block';
+  var tl=document.getElementById('mtimeline'); if(tl) tl.style.display='none';
+  const x=DB.edits[i];
+  document.getElementById('mtitle').textContent=`${x.sub} / ${x.id}`;
+  document.getElementById('mtags').innerHTML=`<span>${x.edit_type}</span><span>分辨率 ${x.resolution||'-'}</span><span>比例 ${x.aspect_ratio||'-'}</span><span>语言 ${x.language||'none'}</span>`;
+  document.getElementById('mpair').innerHTML=`<figure><img src="${x.before}"><figcaption>编辑前 BEFORE</figcaption></figure><figure><img src="${x.after}"><figcaption>编辑后 AFTER</figcaption></figure>`;
+  document.getElementById('mprompt').textContent=x.edit_prompt_full||x.edit_prompt;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+route();
+</script>
+</body>
+</html>
