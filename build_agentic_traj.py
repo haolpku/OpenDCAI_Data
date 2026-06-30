@@ -102,8 +102,11 @@ def build_samples():
         })
 
     # Coding agent: real bug-fix trajectory in a live workspace (file ops +
-    # pytest). step2 has the judge scores too.
-    coding_rows = _load_jsonl(os.path.join(CACHE, "coding", "dataflow_cache_step_step2.jsonl"))
+    # pytest). Prefer the diverse batch (coding_batch/coding_trajectories.jsonl);
+    # fall back to the single-task coding/ cache if the batch is absent.
+    batch = _load_jsonl(os.path.join(CACHE, "coding_batch", "coding_trajectories.jsonl"))
+    coding_rows = batch if batch else _load_jsonl(
+        os.path.join(CACHE, "coding", "dataflow_cache_step_step2.jsonl"))
     for r in coding_rows:
         traj = _as_obj(r.get("trajectory"))
         if not traj:
