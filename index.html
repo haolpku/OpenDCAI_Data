@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenDCAI · 训练数据集展示中心</title>
+<!-- KaTeX 数学公式渲染（本地 vendored，离线可用，无外部 CDN 依赖） -->
+<link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
+<script defer src="assets/vendor/katex/katex.min.js"></script>
+<script defer src="assets/vendor/katex/auto-render.min.js"></script>
 <style>
   :root{--bg:#0a0f1f;--bg2:#0e1530;--card:#141c34;--card2:#172040;--line:#27314f;
         --txt:#e9edf7;--muted:#97a3c2;--accent:#6c8cff;--accent2:#37e0c8;}
@@ -107,6 +111,12 @@
   @media(max-width:680px){.tlrow{grid-template-columns:1fr}}
   footer{border-top:1px solid var(--line);padding:26px 0 70px;color:var(--muted);font-size:13px}
   .note{background:#15233a;border:1px solid #234;border-radius:10px;padding:13px 17px;color:#bcd;font-size:13px}
+  /* JSON 语法高亮（纯前端美化） */
+  pre.json{background:#0b1124;border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow:auto;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55}
+  .jkey{color:#7fb0ff}.jstr{color:#7ee0a8}.jnum{color:#ffc06b}.jbool{color:#ff8fa3}.jnull{color:#8a96b5}.jpunc{color:#8a96b5}
+  /* KaTeX 在深色背景下的微调 */
+  .katex{color:var(--txt);font-size:1.04em}
+  .katex-display{margin:.5em 0;overflow-x:auto;overflow-y:hidden}
 </style>
 </head>
 <body>
@@ -178,6 +188,30 @@ const fb=document.getElementById('filterbar');
 });
 
 function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+// JSON 语法高亮：返回带 class 的 HTML（先 esc 再上色，安全）
+function jsonHL(obj){
+  let s; try{ s=JSON.stringify(obj,null,2); }catch(e){ return esc(String(obj)); }
+  return esc(s).replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|\bnull\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
+    m=>{
+      let cls='jnum';
+      if(/^"/.test(m)) cls=/:$/.test(m)?'jkey':'jstr';
+      else if(/true|false/.test(m)) cls='jbool';
+      else if(/null/.test(m)) cls='jnull';
+      return '<span class="'+cls+'">'+m+'</span>';
+    });
+}
+// 触发 KaTeX 把容器内 $...$ / $$...$$ / \(..\) / \[..\] 渲染成公式（库未加载时静默跳过）
+function typeset(el){
+  if(window.renderMathInElement && el){
+    try{ renderMathInElement(el,{delimiters:[
+      {left:'$$',right:'$$',display:true},
+      {left:'\\[',right:'\\]',display:true},
+      {left:'\\(',right:'\\)',display:false},
+      {left:'$',right:'$',display:false}
+    ],throwOnError:false,ignoredTags:['script','noscript','style','textarea','pre','code']}); }catch(e){}
+  }
+}
 
 // ---------- category grid ----------
 function renderCats(){
@@ -238,6 +272,7 @@ function renderTextDetail(key){
     document.getElementById('dContent').innerHTML='<div class="reclist">'+
       list.map((r,i)=>recHTML(r,i)).join('')+'</div>'+
       (list.length<rows.length&&!q?`<div style="text-align:center;color:var(--muted);padding:10px">已显示 ${list.length} / ${rows.length} 条，可在上方切换“显示全部”</div>`:'');
+    typeset(document.getElementById('dContent'));
   };
   document.getElementById('dBar').oninput=draw;
   document.getElementById('dBar').onchange=draw;
@@ -279,13 +314,13 @@ function convHTML(conv){
 function isCode(s){return /```|SELECT |def |class |\bimport \b|\n {2,}\S/.test(s)&&s.length>60;}
 function valInner(v){
   if(v==null) return '<span class="v">—</span>';
-  if(typeof v==='object') return '<pre>'+esc(JSON.stringify(v,null,2))+'</pre>';
+  if(typeof v==='object') return '<pre class="json">'+jsonHL(v)+'</pre>';
   const s=String(v);
   if(isCode(s)) return '<pre>'+esc(s)+'</pre>';
   return '<div class="v">'+esc(s)+'</div>';
 }
 function valHTML(v){
-  if(v!=null && typeof v==='object') return '<pre class="clamp" onclick="this.classList.toggle(\'expanded\')">'+esc(JSON.stringify(v,null,2))+'</pre><span class="more" onclick="this.previousElementSibling.classList.toggle(\'expanded\')">展开 / 收起</span>';
+  if(v!=null && typeof v==='object') return '<pre class="json clamp" onclick="this.classList.toggle(\'expanded\')">'+jsonHL(v)+'</pre><span class="more" onclick="this.previousElementSibling.classList.toggle(\'expanded\')">展开 / 收起</span>';
   const s=String(v==null?'':v);
   if(isCode(s)) return '<pre class="clamp" onclick="this.classList.toggle(\'expanded\')">'+esc(s)+'</pre><span class="more" onclick="this.previousElementSibling.classList.toggle(\'expanded\')">展开 / 收起</span>';
   if(s.length>320) return '<div class="v clamp">'+esc(s)+'</div><span class="more" onclick="this.previousElementSibling.classList.toggle(\'expanded\')">展开 / 收起</span>';
