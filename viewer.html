@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenDCAI · 训练数据查看器 Data Viewer</title>
+<!-- 复用本仓库已 vendored 的 KaTeX（离线、无外部 CDN） -->
+<link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
+<script defer src="assets/vendor/katex/katex.min.js"></script>
+<script defer src="assets/vendor/katex/auto-render.min.js"></script>
+<style>
+  :root{--bg:#0a0f1f;--bg2:#0e1530;--card:#141c34;--card2:#172040;--line:#27314f;
+        --txt:#e9edf7;--muted:#97a3c2;--accent:#6c8cff;--accent2:#37e0c8;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;
+       background:radial-gradient(1200px 620px at 82% -12%,#1b2a55 0,transparent 58%),var(--bg);color:var(--txt);line-height:1.6}
+  a{color:var(--accent);text-decoration:none}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 22px}
+  header{padding:34px 0 14px}
+  .badge{display:inline-block;font-size:13px;color:var(--accent2);border:1px solid #244a47;background:#0f2724;padding:4px 12px;border-radius:999px;margin-bottom:12px}
+  h1{font-size:30px;margin:0 0 8px}
+  h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);max-width:760px;font-size:14.5px}
+  .privacy{margin-top:10px;font-size:12.5px;color:#8fb89f;background:#0f2420;border:1px solid #1f4a3a;border-radius:8px;padding:7px 12px;display:inline-block}
+  /* input area */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:18px 0}
+  textarea{width:100%;min-height:150px;background:#0b1124;border:1px solid var(--line);color:var(--txt);
+           border-radius:10px;padding:12px 14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;resize:vertical;line-height:1.5}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  button{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#06122a;font-weight:700;border:none;
+         padding:9px 18px;border-radius:9px;cursor:pointer;font-size:14px}
+  button.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line);font-weight:500}
+  .hint{color:var(--muted);font-size:12.5px}
+  .examples{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .ex{background:var(--card2);border:1px solid var(--line);color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer;font-size:12.5px}
+  .ex:hover{border-color:var(--accent);color:var(--txt)}
+  /* status */
+  .status{margin:6px 0 0;font-size:13px}
+  .status.ok{color:var(--accent2)}.status.err{color:#ff8fa3}
+  /* nav for jsonl */
+  .nav{display:flex;align-items:center;gap:10px;margin:14px 0 4px;flex-wrap:wrap}
+  .nav .count{color:var(--muted);font-size:13px}
+  .nav input[type=number]{width:70px;background:#0b1124;border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:5px 8px}
+  /* record */
+  .rec{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:12px}
+  .rhead{padding:8px 15px;background:#0f1730;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  .field{padding:11px 15px;border-bottom:1px solid #1a2340}
+  .field:last-child{border-bottom:none}
+  .field .k{font-size:11.5px;color:var(--accent2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;font-weight:700}
+  .field .k .kind{color:var(--muted);font-weight:400;text-transform:none;margin-left:8px}
+  .field .v{white-space:pre-wrap;word-break:break-word;font-size:14px;color:#dde4f3}
+  pre.json{background:#0b1124;border:1px solid var(--line);border-radius:8px;padding:11px 13px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;margin:0}
+  pre.code{background:#0c1322;border:1px solid var(--line);border-radius:8px;padding:11px 13px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;color:#c7f2e4;margin:0}
+  .jkey{color:#7fb0ff}.jstr{color:#7ee0a8}.jnum{color:#ffc06b}.jbool{color:#ff8fa3}.jnull{color:#8a96b5}
+  .katex{color:var(--txt);font-size:1.03em}.katex-display{margin:.4em 0;overflow-x:auto;overflow-y:hidden}
+  .bubble{margin:6px 0;padding:9px 13px;border-radius:10px;font-size:13.5px}
+  .bubble.user{background:#13233f;border:1px solid #20406b}
+  .bubble.assistant{background:#13261f;border:1px solid #1f4a3a}
+  .bubble .role{font-size:11px;color:var(--muted);margin-bottom:3px;text-transform:uppercase}
+  footer{border-top:1px solid var(--line);padding:24px 0 60px;color:var(--muted);font-size:12.5px;margin-top:30px}
+  code.inline{background:#0c1322;padding:1px 5px;border-radius:4px;font-family:ui-monospace,monospace;font-size:.92em;color:#c7f2e4}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">OpenDCAI · 工具</span>
+    <h1>训练数据查看器 <span>Data Viewer</span></h1>
+    <div class="sub">粘贴 JSON / JSONL（每行一条样本）/ 含 LaTeX 的文本，自动识别并渲染：JSON 折叠高亮、LaTeX 公式、代码块、对话样本字段感知展示。专为查看 LLM 训练数据（SFT / CoT / 指令对话）设计。</div>
+    <div class="privacy">🔒 隐私：所有解析与渲染都在你的浏览器本地完成，数据不会上传到任何服务器。</div>
+  </header>
+
+  <div class="panel">
+    <textarea id="input" placeholder='在此粘贴数据。例如：
+{"instruction":"求解方程","input":"x^2=4","output":"$x=\\pm 2$"}
+
+或 JSONL（每行一条）：
+{"question":"1+1=?","answer":"2"}
+{"question":"积分 $\\int_0^1 x\\,dx$","answer":"$\\frac{1}{2}$"}'></textarea>
+    <div class="row">
+      <button onclick="parseAndRender()">▶ 解析并查看</button>
+      <button class="ghost" onclick="document.getElementById('input').value='';clearOut();">清空</button>
+      <span class="hint">支持：单个 JSON 对象 / JSON 数组 / JSONL 多行 / 纯文本(LaTeX预览)</span>
+    </div>
+    <div class="examples">
+      <span class="hint" style="width:100%">试试示例：</span>
+      <span class="ex" onclick="loadEx('math')">数学 CoT (含公式)</span>
+      <span class="ex" onclick="loadEx('jsonl')">JSONL 多条样本</span>
+      <span class="ex" onclick="loadEx('chat')">多轮对话</span>
+      <span class="ex" onclick="loadEx('code')">代码生成</span>
+      <span class="ex" onclick="loadEx('latex')">纯 LaTeX 文本</span>
+      <span class="ex" onclick="loadEx('nested')">嵌套 JSON</span>
+    </div>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div id="navwrap"></div>
+  <div id="out"></div>
+
+  <footer>
+    OpenDCAI Data Viewer · 纯前端、离线可用、复用本站 vendored KaTeX。<br>
+    渲染说明：<code class="inline">$...$</code>/<code class="inline">\(..\)</code>/<code class="inline">\[..\]</code> 渲染为公式；JSON/代码块内的 <code class="inline">$</code> 不会被误渲染；非法输入会给出提示而非崩溃。
+  </footer>
+</div>
+
+<script>
+/* ---------------- 工具函数 ---------------- */
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+// JSON 语法高亮
+function jsonHL(obj){
+  let s; try{ s=JSON.stringify(obj,null,2); }catch(e){ return esc(String(obj)); }
+  return esc(s).replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|\bnull\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
+    m=>{ let cls='jnum';
+      if(/^"/.test(m)) cls=/:$/.test(m)?'jkey':'jstr';
+      else if(/true|false/.test(m)) cls='jbool';
+      else if(/null/.test(m)) cls='jnull';
+      return '<span class="'+cls+'">'+m+'</span>'; });
+}
+
+// 触发 KaTeX
+function typeset(el){
+  if(window.renderMathInElement && el){
+    try{ renderMathInElement(el,{delimiters:[
+      {left:'$$',right:'$$',display:true},{left:'\\[',right:'\\]',display:true},
+      {left:'\\(',right:'\\)',display:false},{left:'$',right:'$',display:false}
+    ],throwOnError:false,ignoredTags:['script','noscript','style','textarea','pre','code']}); }catch(e){}
+  }
+}
+
+// 判断是否像代码
+function isCode(s){return /```|SELECT |def |class |\bimport \b|function |#include|\n {2,}\S/.test(s)&&s.length>50;}
+// 提取```代码块```（简单 markdown 代码围栏）
+function hasFence(s){return /```/.test(s);}
+
+// 渲染单个字段值
+function renderValue(v){
+  if(v==null) return '<span class="v">—</span>';
+  if(typeof v==='object') return '<pre class="json">'+jsonHL(v)+'</pre>';
+  const s=String(v);
+  if(hasFence(s)){
+    // 把 ```...``` 块抽出来当代码，其余按文本（可能含公式）
+    let html=''; let parts=s.split(/```/);
+    parts.forEach((p,i)=>{ if(i%2===1){ // 代码块
+        let body=p.replace(/^[a-zA-Z0-9]*\n/,''); html+='<pre class="code">'+esc(body)+'</pre>';
+      } else if(p.trim()){ html+='<div class="v">'+esc(p)+'</div>'; } });
+    return html;
+  }
+  if(isCode(s)) return '<pre class="code">'+esc(s)+'</pre>';
+  return '<div class="v">'+esc(s)+'</div>'; // 文本，可能含 $公式$，typeset 时渲染
+}
+
+// 字段顺序优先级（常见训练数据字段排前）
+const FIELD_ORDER=['id','system','instruction','input','prompt','question','context','image','conversations','messages','output','answer','response','cot','cot_answer','reasoning','solution','label','score','meta'];
+function orderedKeys(obj){
+  const ks=Object.keys(obj);
+  return ks.sort((a,b)=>{
+    let ia=FIELD_ORDER.indexOf(a.toLowerCase()), ib=FIELD_ORDER.indexOf(b.toLowerCase());
+    if(ia<0)ia=999; if(ib<0)ib=999; return ia-ib || ks.indexOf(a)-ks.indexOf(b);
+  });
+}
+
+// 识别字段值类型标签
+function kindLabel(v){
+  if(v==null) return 'null';
+  if(typeof v==='object') return Array.isArray(v)?'array['+v.length+']':'object';
+  const s=String(v);
+  if(hasFence(s)||isCode(s)) return 'code';
+  if(/\$.+\$|\\\(|\\\[|\\frac|\\sqrt/.test(s)) return 'latex';
+  return 'text·'+s.length;
+}
+
+// 渲染一条记录（对象）
+function renderRecord(obj, idx, total){
+  if(typeof obj!=='object'||obj==null){
+    return '<div class="rec"><div class="field"><div class="v">'+esc(String(obj))+'</div></div></div>';
+  }
+  // 对话型：conversations/messages
+  const convKey = ['conversations','messages'].find(k=>Array.isArray(obj[k]));
+  let inner='';
+  orderedKeys(obj).forEach(k=>{
+    const v=obj[k];
+    if(k===convKey && Array.isArray(v)){
+      let bubbles=v.map(turn=>{
+        const role=(turn.role||turn.from||'').toLowerCase();
+        const content=turn.content!=null?turn.content:(turn.value!=null?turn.value:JSON.stringify(turn));
+        const cls=/user|human|system/.test(role)?'user':'assistant';
+        return '<div class="bubble '+cls+'"><div class="role">'+esc(role||'turn')+'</div>'+renderValue(content)+'</div>';
+      }).join('');
+      inner+='<div class="field"><div class="k">'+esc(k)+'<span class="kind">对话 '+v.length+' 轮</span></div>'+bubbles+'</div>';
+    } else {
+      inner+='<div class="field"><div class="k">'+esc(k)+'<span class="kind">'+kindLabel(v)+'</span></div>'+renderValue(v)+'</div>';
+    }
+  });
+  const head=total>1?`<div class="rhead">第 ${idx+1} / ${total} 条</div>`:'';
+  return '<div class="rec">'+head+inner+'</div>';
+}
+
+/* ---------------- 解析与状态 ---------------- */
+let RECORDS=[]; let CUR=0;
+
+function setStatus(msg,ok){const e=document.getElementById('status');e.className='status '+(ok?'ok':'err');e.textContent=msg;}
+function clearOut(){RECORDS=[];CUR=0;document.getElementById('out').innerHTML='';document.getElementById('navwrap').innerHTML='';document.getElementById('status').textContent='';}
+
+function parseAndRender(){
+  const raw=document.getElementById('input').value.trim();
+  clearOut();
+  if(!raw){setStatus('请输入数据',false);return;}
+
+  // 尝试 1：整体 JSON（对象或数组）
+  let parsed=null, mode='';
+  try{ parsed=JSON.parse(raw);
+    if(Array.isArray(parsed)){ RECORDS=parsed; mode='JSON 数组 ('+parsed.length+' 条)'; }
+    else { RECORDS=[parsed]; mode='单个 JSON 对象'; }
+  }catch(e){
+    // 尝试 2：JSONL（逐行）
+    const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+    const objs=[]; let bad=0; let firstErr='';
+    for(const ln of lines){ try{ objs.push(JSON.parse(ln)); }catch(err){ bad++; if(!firstErr)firstErr=err.message; } }
+    if(objs.length>0){
+      RECORDS=objs; mode='JSONL ('+objs.length+' 条'+(bad?'，'+bad+' 行解析失败':'')+')';
+    } else {
+      // 尝试 3：当作纯文本（LaTeX 预览）
+      RECORDS=[{"(纯文本预览)":raw}]; mode='纯文本（按 LaTeX/文本渲染，非合法 JSON：'+esc(e.message)+'）';
+    }
+  }
+  CUR=0;
+  setStatus('✓ 已识别为 '+mode, true);
+  renderNav(); renderCurrent();
+}
+
+function renderNav(){
+  const nw=document.getElementById('navwrap');
+  if(RECORDS.length<=1){nw.innerHTML='';return;}
+  nw.innerHTML=`<div class="nav">
+    <button class="ghost" onclick="go(-1)">← 上一条</button>
+    <button class="ghost" onclick="go(1)">下一条 →</button>
+    <span class="count">跳转到 <input type="number" id="jump" min="1" max="${RECORDS.length}" value="1" onchange="jumpTo()"> / ${RECORDS.length}</span>
+  </div>`;
+}
+function go(d){CUR=(CUR+d+RECORDS.length)%RECORDS.length;const j=document.getElementById('jump');if(j)j.value=CUR+1;renderCurrent();}
+function jumpTo(){let n=+document.getElementById('jump').value;if(n>=1&&n<=RECORDS.length){CUR=n-1;renderCurrent();}}
+
+function renderCurrent(){
+  const out=document.getElementById('out');
+  out.innerHTML=renderRecord(RECORDS[CUR],CUR,RECORDS.length);
+  typeset(out);
+}
+
+/* ---------------- 示例 ---------------- */
+const EX={
+  math:'{"instruction":"求解下列二次方程","input":"方程 $z^2+(4-2i)z+(7+bi)=0$，求使 $|z_1|<1<|z_2|$ 的实数 $b$。","output":"由韦达定理 $z_1 z_2 = 7+bi$，$z_1+z_2=-(4-2i)$。\\n\\n判别式 $\\\\Delta=(4-2i)^2-4(7+bi)$，化简得最终条件 $b \\\\in (-3, 3)$。"}',
+  jsonl:'{"question":"计算 $1+1$","answer":"$2$"}\n{"question":"求 $\\\\int_0^1 x\\\\,dx$","answer":"$\\\\frac{1}{2}$"}\n{"question":"勾股定理","answer":"$a^2+b^2=c^2$"}',
+  chat:'{"conversations":[{"role":"system","content":"你是数学助教"},{"role":"user","content":"帮我求导 $f(x)=x^2$"},{"role":"assistant","content":"$f\'(x)=2x$，这是基本的幂函数求导。"}]}',
+  code:'{"instruction":"写一个返回两数之和的函数","output":"```python\\ndef add(a, b):\\n    return a + b\\n```\\n这个函数接受两个参数并返回它们的和。"}',
+  latex:'考虑能量公式 $E=mc^2$，以及高斯积分：\\n\\n\\\\[ \\\\int_{-\\\\infty}^{\\\\infty} e^{-x^2}\\\\,dx = \\\\sqrt{\\\\pi} \\\\]\\n\\n求和：$\\\\sum_{i=1}^{n} i = \\\\frac{n(n+1)}{2}$',
+  nested:'{"id":"sample_001","meta":{"source":"synthetic","difficulty":3,"verified":true,"tags":["math","algebra"],"scores":{"deita":0.87,"superfiltering":null}},"instruction":"解方程","output":"x=2"}'
+};
+function loadEx(k){document.getElementById('input').value=EX[k];parseAndRender();}
+</script>
+</body>
+</html>
