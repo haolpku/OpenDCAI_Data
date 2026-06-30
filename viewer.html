@@ -18,6 +18,9 @@
   .wrap{max-width:1200px;margin:0 auto;padding:0 22px}
   header{padding:34px 0 14px}
   .badge{display:inline-block;font-size:13px;color:var(--accent2);border:1px solid #244a47;background:#0f2724;padding:4px 12px;border-radius:999px;margin-bottom:12px}
+  .topnav{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .navbtn{display:inline-flex;align-items:center;gap:7px;background:var(--card2);color:var(--txt);border:1px solid var(--line);font-weight:600;padding:9px 18px;border-radius:10px;font-size:14px;white-space:nowrap}
+  .navbtn:hover{border-color:var(--accent)}
   h1{font-size:30px;margin:0 0 8px}
   h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
   .sub{color:var(--muted);max-width:760px;font-size:14.5px}
@@ -64,7 +67,10 @@
 <body>
 <div class="wrap">
   <header>
-    <span class="badge">OpenDCAI · 工具</span>
+    <div class="topnav">
+      <span class="badge">OpenDCAI · 工具</span>
+      <a class="navbtn" href="index.html">← 返回数据集展示中心</a>
+    </div>
     <h1>训练数据查看器 <span>Data Viewer</span></h1>
     <div class="sub">粘贴 JSON / JSONL（每行一条样本）/ 含 LaTeX 的文本，自动识别并渲染：JSON 折叠高亮、LaTeX 公式、代码块、对话样本字段感知展示。专为查看 LLM 训练数据（SFT / CoT / 指令对话）设计。</div>
     <div class="privacy">🔒 隐私：所有解析与渲染都在你的浏览器本地完成，数据不会上传到任何服务器。</div>

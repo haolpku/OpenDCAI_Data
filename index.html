@@ -19,6 +19,10 @@
   /* hero */
   header{padding:54px 0 30px}
   .badge{display:inline-block;font-size:13px;color:var(--accent2);border:1px solid #244a47;background:#0f2724;padding:4px 12px;border-radius:999px;margin-bottom:16px}
+  .topnav{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .navbtn{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#06122a;font-weight:700;padding:9px 18px;border-radius:10px;font-size:14px;white-space:nowrap}
+  .navbtn:hover{opacity:.9}
+  .navbtn.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line);font-weight:600}
   h1{font-size:40px;margin:0 0 10px;letter-spacing:.5px}
   h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
   .sub{color:var(--muted);max-width:820px;font-size:16px}
@@ -125,7 +129,10 @@
   <!-- ============ HOME ============ -->
   <div id="home">
     <header>
-      <div class="badge">OpenDCAI · DataFlow 数据治理引擎</div>
+      <div class="topnav">
+        <div class="badge">OpenDCAI · DataFlow 数据治理引擎</div>
+        <a class="navbtn" href="viewer.html">🔍 训练数据查看器 →</a>
+      </div>
       <h1>OpenDCAI <span>训练数据集</span> 展示中心</h1>
       <p class="sub">点击任意分类卡片，进入查看该类的真实数据样本。涵盖文本、推理、代码、Text2SQL、指令对话、医疗问答、函数调用、RAG，以及多模态（图像编辑、区域描述、知识VQA、语音ASR、视频CoT推理）。多数分类提供 100+ 条样本（视频类为精选短样本）。数据均由 DataFlow 流水线清洗 / 合成 / 质量打分。</p>
       <div class="stats" id="stats"></div>
